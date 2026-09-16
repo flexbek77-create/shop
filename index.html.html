@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>GameTop — Донат в игры</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root {
+  --bg: #F4F5F7;
+  --surface: #FFFFFF;
+  --surface-2: #F0F1F4;
+  --border: #E5E7EB;
+  --text: #14161A;
+  --text-dim: #7B7F8A;
+  --accent: #E12222;
+  --accent-dim: #FDEAEA;
+  --success: #1FAF6E;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  padding-bottom: 84px;
+}
+
+/* ---------------- TOP BAR ---------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid transparent;
+}
+.icon-btn {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+.back-btn.show { display: flex; }
+.topbar-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.balance-chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  gap: 4px;
+}
+.balance-cur { color: var(--text-dim); font-weight: 500; }
+
+/* ---------------- SCREENS ---------------- */
+#app { padding: 0 16px; }
+.screen { display: none; padding-top: 14px; }
+.screen.active { display: block; animation: fadeIn .18s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.section-heading {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 18px 2px 10px;
+}
+
+/* ---------------- CATALOG ---------------- */
+.promo-banner {
+  background: linear-gradient(135deg, #1B1D24, #2C1517 65%);
+  border-radius: var(--radius-lg);
+  padding: 20px 18px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.promo-tag {
+  display: inline-block;
+  background: var(--accent);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  letter-spacing: 0.03em;
+}
+.promo-title { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.promo-sub { font-size: 12.5px; opacity: 0.7; }
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.game-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 6px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.game-card:active { transform: scale(0.96); }
+.game-card .icon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+.game-card span.label {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+}
+.g-pubg { background: linear-gradient(145deg, #E8A63C, #A6660F); }
+.g-ml { background: linear-gradient(145deg, #5B7BFF, #2A3FB8); }
+.g-ff { background: linear-gradient(145deg, #4A4F63, #1B1D26); }
+.g-stars { background: linear-gradient(145deg, #FFC94D, #E08A00); }
+.g-prem { background: linear-gradient(145deg, #B26BFF, #6B34C4); }
+.g-steam { background: linear-gradient(145deg, #2E3A4A, #10151C); }
+.g-hok { background: linear-gradient(145deg, #FF6B6B, #B32424); }
+.g-ws { background: linear-gradient(145deg, #59A9FF, #1E4E8C); }
+.g-rblx { background: linear-gradient(145deg, #1E1E1E, #000000); }
+
+/* ---------------- PRODUCT ---------------- */
+.product-hero {
+  border-radius: var(--radius-lg);
+  padding: 22px 18px;
+  background: linear-gradient(135deg, #1B1D24, #2C1517 65%);
+  color: #fff;
+  margin-bottom: 6px;
+}
+.product-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(225,34,34,0.15);
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.product-title { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 4px;
+  overflow-x: auto;
+}
+.tab-btn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: none;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.tab-btn.active { background: var(--accent); color: #fff; }
+
+.field-block { margin-top: 14px; }
+.field-label {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+.id-row { display: flex; gap: 8px; }
+.text-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  font-size: 14.5px;
+  color: var(--text);
+}
+.text-input:focus { outline: none; border-color: var(--accent); }
+.btn-secondary {
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.id-status {
+  font-size: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+  display: none;
+}
+.id-status.ok { color: var(--success); display: block; }
+.id-status.err { color: var(--accent); display: block; }
+
+.packages-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.pkg-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  position: relative;
+}
+.pkg-card.selected {
+  border-color: var(--accent);
+  background: linear-gradient(160deg, var(--accent-dim), var(--surface) 70%);
+}
+.pkg-card .check {
+  position: absolute; top: 10px; right: 10px;
+  width: 17px; height: 17px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+}
+.pkg-card.selected .check { background: var(--accent); border-color: var(--accent); }
+.pkg-amount { font-size: 14.5px; font-weight: 800; margin-bottom: 2px; }
+.pkg-price { font-size: 12.5px; color: var(--text-dim); font-weight: 600; }
+
+.pay-methods { display: flex; gap: 10px; }
+.pay-method {
+  flex: 1;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: var(--surface);
+}
+.pay-method.selected { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+
+.buy-btn {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+.buy-btn:disabled { background: var(--surface-2); color: var(--text-dim); }
+
+/* ---------------- WALLET ---------------- */
+.wallet-hero {
+  background: linear-gradient(135deg, #1B1D24, #2C1517 65%);
+  border-radius: var(--radius-lg);
+  padding: 24px 20px;
+  color: #fff;
+  text-align: center;
+}
+.wallet-label { font-size: 12.5px; opacity: 0.7; margin-bottom: 6px; }
+.wallet-amount { font-size: 28px; font-weight: 800; margin-bottom: 16px; }
+.wallet-topup-btn { width: 100%; }
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.btn-ghost {
+  width: 100%;
+  background: transparent;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 13px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+.card-list { display: flex; flex-direction: column; gap: 10px; }
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: var(--text-dim);
+  font-size: 13px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border);
+}
+
+/* ---------------- HISTORY ---------------- */
+.order-list { display: flex; flex-direction: column; gap: 10px; }
+.order-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-info .o-title { font-size: 13.5px; font-weight: 700; margin-bottom: 3px; }
+.order-info .o-sub { font-size: 12px; color: var(--text-dim); }
+.order-status {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+.order-status.pending { background: #FFF3D6; color: #B8860B; }
+.order-status.done { background: #E4F8EF; color: var(--success); }
+.order-status.failed { background: var(--accent-dim); color: var(--accent); }
+
+/* ---------------- PROFILE ---------------- */
+.profile-header { display: flex; align-items: center; gap: 14px; padding: 10px 2px 22px; }
+.profile-avatar {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #5B7BFF, #2A3FB8);
+}
+.profile-name { font-size: 16px; font-weight: 800; }
+.settings-list { display: flex; flex-direction: column; gap: 10px; }
+.settings-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-icon { font-size: 20px; }
+.settings-text { flex: 1; }
+.settings-title { font-size: 13.5px; font-weight: 700; }
+.settings-sub { font-size: 11.5px; color: var(--text-dim); margin-top: 2px; }
+.settings-arrow { color: var(--text-dim); font-size: 18px; }
+
+/* ---------------- BOTTOM NAV ---------------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav-item {
+  flex: 1;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 0;
+  color: var(--text-dim);
+}
+.nav-item span { font-size: 10.5px; font-weight: 600; }
+.nav-item.active { color: var(--accent); }
+
+/* ---------------- TOAST ---------------- */
+.toast {
+  position: fixed;
+  bottom: 92px; left: 16px; right: 16px;
+  background: var(--text);
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+  z-index: 200;
+}
+.toast.show { opacity: 1; }
+
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <button class="icon-btn back-btn" id="backBtn" aria-label="Назад">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <h1 class="topbar-title" id="topbarTitle">GameTop</h1>
+  <div class="balance-chip" id="balanceChip">
+    <span id="balanceValue">0</span><span class="balance-cur">UZS</span>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ============ SCREEN: CATALOG (Bosh sahifa) ============ -->
+  <section class="screen active" id="screen-catalog">
+    <div class="promo-banner">
+      <div class="promo-tag">YANGI</div>
+      <div class="promo-title">PUBG UC endi tezroq yetkaziladi</div>
+      <div class="promo-sub">O'rtacha 30 soniyada balansingizga tushadi</div>
+    </div>
+
+    <div class="section-heading">O'yinlar va xizmatlar</div>
+    <div class="catalog-grid" id="catalogGrid"></div>
+  </section>
+
+  <!-- ============ SCREEN: PRODUCT ============ -->
+  <section class="screen" id="screen-product">
+    <div class="product-hero" id="productHero">
+      <div class="product-tag" id="prodTag">DONAT</div>
+      <div class="product-title" id="prodTitle">PUBG Mobile</div>
+    </div>
+
+    <div class="tabs" id="productTabs"></div>
+
+    <div class="field-block" id="idBlock">
+      <label class="field-label">O'yinchi ID</label>
+      <div class="id-row">
+        <input class="text-input" id="gameIdInput" placeholder="ID kiriting" inputmode="numeric">
+        <button class="btn-secondary" id="checkBtn">Tekshirish</button>
+      </div>
+      <div class="id-status" id="idStatus"></div>
+    </div>
+
+    <div class="section-heading">Mahsulotni tanlang</div>
+    <div class="packages-grid" id="packagesGrid"></div>
+
+    <div class="pay-method-block">
+      <div class="section-heading">To'lov usuli</div>
+      <div class="pay-methods" id="payMethods"></div>
+    </div>
+
+    <button class="buy-btn" id="buyBtn" disabled>
+      <span>Sotib olish</span>
+      <span class="buy-total" id="buyTotal">—</span>
+    </button>
+  </section>
+
+  <!-- ============ SCREEN: WALLET (Hamyon) ============ -->
+  <section class="screen" id="screen-wallet">
+    <div class="wallet-hero">
+      <div class="wallet-label">Umumiy balans</div>
+      <div class="wallet-amount" id="walletAmount">0 UZS</div>
+      <button class="btn-primary wallet-topup-btn" id="topupBtn">To'ldirish</button>
+    </div>
+
+    <div class="section-heading">Kartalarim</div>
+    <div class="card-list" id="cardList">
+      <div class="empty-state">Hali karta qo'shilmagan</div>
+    </div>
+    <button class="btn-ghost add-card-btn" id="addCardBtn">+ Karta qo'shish</button>
+  </section>
+
+  <!-- ============ SCREEN: HISTORY (Tarix) ============ -->
+  <section class="screen" id="screen-history">
+    <div class="section-heading">So'nggi buyurtmalar</div>
+    <div class="order-list" id="orderList">
+      <div class="empty-state">Hali buyurtmalar yo'q</div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN: PROFILE (Profil) ============ -->
+  <section class="screen" id="screen-profile">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar"></div>
+      <div class="profile-name" id="profileName">Foydalanuvchi</div>
+    </div>
+
+    <div class="settings-list">
+      <div class="settings-item" id="menuCards">
+        <div class="settings-icon">💳</div>
+        <div class="settings-text">
+          <div class="settings-title">Kartalarim</div>
+          <div class="settings-sub">To'lov uchun Uzcard / Humo kartalari</div>
+        </div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" id="menuLang">
+        <div class="settings-icon">🌐</div>
+        <div class="settings-text">
+          <div class="settings-title">Ilova tili</div>
+          <div class="settings-sub">O'zbek</div>
+        </div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" id="menuSupport">
+        <div class="settings-icon">🎧</div>
+        <div class="settings-text">
+          <div class="settings-title">Qo'llab-quvvatlash</div>
+        </div>
+        <div class="settings-arrow">›</div>
+      </div>
+      <div class="settings-item" id="menuAbout">
+        <div class="settings-icon">ℹ️</div>
+        <div class="settings-text">
+          <div class="settings-title">Ilova haqida</div>
+        </div>
+        <div class="settings-arrow">›</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ BOTTOM NAV ============ -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-screen="catalog">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="3" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="13" width="8" height="8" rx="2" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span>Bosh sahifa</span>
+  </button>
+  <button class="nav-item" data-screen="wallet">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="6" width="20" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M16 13.5H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2 10H22" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span>Hamyon</span>
+  </button>
+  <button class="nav-item" data-screen="history">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 7V12L15.5 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Tarix</span>
+  </button>
+  <button class="nav-item" data-screen="profile">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="currentColor" stroke-width="1.8"/><path d="M4.5 20C5.7 16.5 8.5 14.5 12 14.5C15.5 14.5 18.3 16.5 19.5 20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Profil</span>
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ==========================================================
+// DATA.JS — здесь редактируешь игры, пакеты и цены.
+// Логику (app.js) трогать не нужно, если просто меняешь ассортимент.
+// ==========================================================
+
+const GAMES = [
+  { id: "pubg",  name: "PUBG Mobile",       icon: "P",  cls: "g-pubg",  tag: "DONAT",     needsId: true  },
+  { id: "ml",    name: "Mobile Legends",    icon: "M",  cls: "g-ml",    tag: "DONAT",     needsId: true  },
+  { id: "ff",    name: "Free Fire",         icon: "F",  cls: "g-ff",    tag: "DONAT",     needsId: true  },
+  { id: "hok",   name: "Honor of Kings",    icon: "H",  cls: "g-hok",   tag: "DONAT",     needsId: true  },
+  { id: "ws",    name: "Whiteout Survival", icon: "W",  cls: "g-ws",    tag: "DONAT",     needsId: true  },
+  { id: "rblx",  name: "Roblox Giftcard",   icon: "R",  cls: "g-rblx",  tag: "GIFTCARD",  needsId: false },
+  { id: "steam", name: "Steam Global",      icon: "S",  cls: "g-steam", tag: "GIFTCARD",  needsId: false },
+  { id: "stars", name: "Telegram Stars",    icon: "★",  cls: "g-stars", tag: "TELEGRAM",  needsId: false },
+  { id: "prem",  name: "Telegram Premium",  icon: "P+", cls: "g-prem",  tag: "TELEGRAM",  needsId: false },
+];
+
+// Пакеты для каждой игры. Для игр с несколькими товарами (PUBG PROMOCOD и т.п.)
+// можно расширить через вкладки TABS ниже.
+const PACKAGES = {
+  pubg: [
+    { amount: "60 UC",   price: 12646 },
+    { amount: "325 UC",  price: 58040 },
+    { amount: "660 UC",  price: 116093 },
+    { amount: "1800 UC", price: 290226 },
+    { amount: "3850 UC", price: 578747 },
+    { amount: "8100 UC", price: 1160929 },
+  ],
+  ml: [
+    { amount: "56 Diamonds",  price: 15000 },
+    { amount: "278 Diamonds", price: 68000 },
+    { amount: "571 Diamonds", price: 132000 },
+    { amount: "1783 Diamonds", price: 390000 },
+  ],
+  ff: [
+    { amount: "100 Diamonds", price: 14000 },
+    { amount: "310 Diamonds", price: 41000 },
+    { amount: "520 Diamonds", price: 68000 },
+  ],
+  hok: [
+    { amount: "60 Tokens",  price: 13000 },
+    { amount: "300 Tokens", price: 62000 },
+  ],
+  ws: [
+    { amount: "60 Gems",  price: 13500 },
+    { amount: "330 Gems", price: 68000 },
+  ],
+  rblx: [
+    { amount: "$10 Giftcard", price: 134000 },
+    { amount: "$25 Giftcard", price: 330000 },
+  ],
+  steam: [
+    { amount: "$5",  price: 68000 },
+    { amount: "$10", price: 134000 },
+    { amount: "$25", price: 330000 },
+    { amount: "$50", price: 655000 },
+  ],
+  stars: [
+    { amount: "50 Stars",  price: 9500 },
+    { amount: "100 Stars", price: 18500 },
+    { amount: "500 Stars", price: 89000 },
+  ],
+  prem: [
+    { amount: "1 oy",   price: 65000 },
+    { amount: "6 oy",   price: 320000 },
+    { amount: "12 oy",  price: 550000 },
+  ],
+};
+
+// Способы оплаты — сейчас только карточный перевод (см. разговор), Payme/Click можно добавить позже
+const PAY_METHODS = [
+  { id: "card", label: "Karta orqali" },
+  // { id: "payme", label: "Payme" },
+  // { id: "click", label: "Click" },
+];
+
+// URL твоего n8n webhook — сюда прилетит заказ. Замени на реальный после настройки n8n.
+const N8N_WEBHOOK_URL = "https://YOUR-N8N-INSTANCE.app/webhook/gametop-order";
+
+
+// ==========================================================
+// APP.JS — логика приложения. Обычно трогать не нужно,
+// если только не меняешь структуру экранов.
+// ==========================================================
+
+const tg = window.Telegram?.WebApp;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  tg.setHeaderColor("secondary_bg_color");
+}
+
+// ---------- State ----------
+let state = {
+  screen: "catalog",
+  currentGame: null,
+  selectedPkgIndex: null,
+  selectedPayMethod: PAY_METHODS[0]?.id || null,
+  idVerified: false,
+  wallet: 0,          // баланс пользователя (если решишь ввести предоплаченный баланс)
+  orders: [],          // локальная история для демонстрации; в реальной системе тянуть из n8n/БД
+};
+
+// ---------- DOM refs ----------
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const topbarTitle = $("#topbarTitle");
+const backBtn = $("#backBtn");
+const balanceValue = $("#balanceValue");
+const toast = $("#toast");
+
+// ==========================================================
+// NAVIGATION
+// ==========================================================
+const SCREEN_TITLES = {
+  catalog: "GameTop",
+  wallet: "Hamyon",
+  history: "Tarix",
+  profile: "Profil",
+  product: "", // задаётся динамически по игре
+};
+
+function goToScreen(name) {
+  $$(".screen").forEach(s => s.classList.remove("active"));
+  $(`#screen-${name}`).classList.add("active");
+  state.screen = name;
+
+  // bottom nav highlight (product не имеет своей кнопки — оставляем catalog подсвеченным)
+  const navKey = name === "product" ? "catalog" : name;
+  $$(".nav-item").forEach(n => n.classList.toggle("active", n.dataset.screen === navKey));
+
+  // back button показываем только на product
+  backBtn.classList.toggle("show", name === "product");
+  topbarTitle.textContent = name === "product" ? state.currentGame?.name : SCREEN_TITLES[name];
+
+  if (tg) {
+    if (name === "product") {
+      tg.BackButton.show();
+      tg.BackButton.onClick(() => goToScreen("catalog"));
+    } else {
+      tg.BackButton.hide();
+    }
+  }
+
+  if (name === "history") renderHistory();
+  if (name === "wallet") renderWallet();
+}
+
+backBtn.addEventListener("click", () => goToScreen("catalog"));
+
+$$(".nav-item").forEach(btn => {
+  btn.addEventListener("click", () => goToScreen(btn.dataset.screen));
+});
+
+// ==========================================================
+// CATALOG
+// ==========================================================
+function renderCatalog() {
+  const grid = $("#catalogGrid");
+  grid.innerHTML = "";
+  GAMES.forEach(game => {
+    const el = document.createElement("div");
+    el.className = "game-card";
+    el.innerHTML = `
+      <div class="icon ${game.cls}">${game.icon}</div>
+      <span class="label">${game.name}</span>
+    `;
+    el.addEventListener("click", () => openProduct(game));
+    grid.appendChild(el);
+  });
+}
+
+// ==========================================================
+// PRODUCT SCREEN
+// ==========================================================
+function openProduct(game) {
+  state.currentGame = game;
+  state.selectedPkgIndex = null;
+  state.idVerified = false;
+
+  $("#prodTag").textContent = game.tag;
+  $("#prodTitle").textContent = game.name;
+  $("#gameIdInput").value = "";
+  $("#idStatus").className = "id-status";
+  $("#idBlock").style.display = game.needsId ? "block" : "none";
+
+  renderPackages(game.id);
+  renderPayMethods();
+  updateBuyBtn();
+  goToScreen("product");
+}
+
+function renderPackages(gameId) {
+  const grid = $("#packagesGrid");
+  grid.innerHTML = "";
+  (PACKAGES[gameId] || []).forEach((pkg, i) => {
+    const el = document.createElement("div");
+    el.className = "pkg-card";
+    el.innerHTML = `
+      <div class="check"></div>
+      <div class="pkg-amount">${pkg.amount}</div>
+      <div class="pkg-price">${pkg.price.toLocaleString("ru-RU")} UZS</div>
+    `;
+    el.addEventListener("click", () => {
+      $$(".pkg-card").forEach(p => p.classList.remove("selected"));
+      el.classList.add("selected");
+      state.selectedPkgIndex = i;
+      updateBuyBtn();
+    });
+    grid.appendChild(el);
+  });
+}
+
+function renderPayMethods() {
+  const wrap = $("#payMethods");
+  wrap.innerHTML = "";
+  PAY_METHODS.forEach(m => {
+    const el = document.createElement("div");
+    el.className = "pay-method" + (m.id === state.selectedPayMethod ? " selected" : "");
+    el.textContent = m.label;
+    el.addEventListener("click", () => {
+      state.selectedPayMethod = m.id;
+      renderPayMethods();
+    });
+    wrap.appendChild(el);
+  });
+}
+
+// ---------- ID check ----------
+// ЗАГЛУШКА: замени на реальный запрос к API дилера/игры для проверки ника по ID.
+// Пример реального вызова закомментирован ниже.
+$("#checkBtn").addEventListener("click", async () => {
+  const val = $("#gameIdInput").value.trim();
+  const statusEl = $("#idStatus");
+  if (!val) return;
+
+  statusEl.className = "id-status";
+  statusEl.textContent = "Tekshirilmoqda...";
+  statusEl.style.display = "block";
+  statusEl.style.color = "var(--text-dim)";
+
+  try {
+    // --- РЕАЛЬНЫЙ ВЫЗОВ (раскомментируй когда получишь API от дилера) ---
+    // const res = await fetch(`${N8N_WEBHOOK_URL}/check-id`, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ game: state.currentGame.id, game_id: val })
+    // });
+    // const data = await res.json();
+    // if (!data.found) throw new Error("not found");
+    // const nickname = data.nickname;
+
+    // --- ЗАГЛУШКА для теста интерфейса ---
+    await new Promise(r => setTimeout(r, 500));
+    const nickname = "Player_" + val.slice(-4);
+
+    state.idVerified = true;
+    statusEl.textContent = `✓ O'yinchi topildi: ${nickname}`;
+    statusEl.className = "id-status ok";
+  } catch (e) {
+    state.idVerified = false;
+    statusEl.textContent = "✕ O'yinchi topilmadi, ID ni tekshiring";
+    statusEl.className = "id-status err";
+  }
+  updateBuyBtn();
+});
+
+$("#gameIdInput").addEventListener("input", updateBuyBtn);
+
+// ---------- Buy button state ----------
+function updateBuyBtn() {
+  const btn = $("#buyBtn");
+  const totalEl = $("#buyTotal");
+  const game = state.currentGame;
+  if (!game) return;
+
+  const idOk = !game.needsId || $("#gameIdInput").value.trim().length > 0;
+  const ready = idOk && state.selectedPkgIndex !== null;
+  btn.disabled = !ready;
+
+  if (ready) {
+    const pkg = PACKAGES[game.id][state.selectedPkgIndex];
+    totalEl.textContent = pkg.price.toLocaleString("ru-RU") + " UZS";
+  } else {
+    totalEl.textContent = "—";
+  }
+}
+
+// ---------- Submit order ----------
+$("#buyBtn").addEventListener("click", async () => {
+  const game = state.currentGame;
+  if (state.selectedPkgIndex === null) return;
+  const pkg = PACKAGES[game.id][state.selectedPkgIndex];
+  const gameId = $("#gameIdInput").value.trim();
+
+  const order = {
+    order_id: "ord_" + Date.now(),
+    game: game.id,
+    game_name: game.name,
+    game_id: gameId || null,
+    package: pkg.amount,
+    price: pkg.price,
+    pay_method: state.selectedPayMethod,
+    tg_user_id: tg?.initDataUnsafe?.user?.id || null,
+    tg_username: tg?.initDataUnsafe?.user?.username || null,
+    status: "pending", // pending -> paid -> fulfilled / failed
+    created_at: new Date().toISOString(),
+  };
+
+  // ---- Отправка заказа на твой n8n webhook ----
+  try {
+    // fetch(N8N_WEBHOOK_URL, {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify(order)
+    // });
+
+    // Альтернатива/дубль: отправить прямо боту через Telegram Web App API
+    if (tg) tg.sendData(JSON.stringify(order));
+  } catch (e) {
+    console.error("Order send failed", e);
+  }
+
+  state.orders.unshift(order);
+  showToast(`Buyurtma yaratildi: ${pkg.amount}`);
+  goToScreen("history");
+});
+
+// ==========================================================
+// WALLET
+// ==========================================================
+function renderWallet() {
+  $("#walletAmount").textContent = state.wallet.toLocaleString("ru-RU") + " UZS";
+  balanceValue.textContent = state.wallet.toLocaleString("ru-RU");
+}
+
+$("#topupBtn").addEventListener("click", () => {
+  showToast("To'ldirish: karta ma'lumotlari admin tomonidan yuboriladi");
+});
+
+// ==========================================================
+// HISTORY
+// ==========================================================
+function renderHistory() {
+  const list = $("#orderList");
+  if (state.orders.length === 0) {
+    list.innerHTML = `<div class="empty-state">Hali buyurtmalar yo'q</div>`;
+    return;
+  }
+  list.innerHTML = "";
+  state.orders.forEach(o => {
+    const el = document.createElement("div");
+    el.className = "order-item";
+    const statusMap = {
+      pending: { cls: "pending", text: "Kutilmoqda" },
+      paid: { cls: "pending", text: "To'landi" },
+      fulfilled: { cls: "done", text: "Bajarildi" },
+      failed: { cls: "failed", text: "Xato" },
+    };
+    const st = statusMap[o.status] || statusMap.pending;
+    el.innerHTML = `
+      <div class="order-info">
+        <div class="o-title">${o.game_name} — ${o.package}</div>
+        <div class="o-sub">${o.game_id ? "ID: " + o.game_id + " · " : ""}${o.price.toLocaleString("ru-RU")} UZS</div>
+      </div>
+      <div class="order-status ${st.cls}">${st.text}</div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ==========================================================
+// PROFILE
+// ==========================================================
+function renderProfile() {
+  const user = tg?.initDataUnsafe?.user;
+  $("#profileName").textContent = user
+    ? [user.first_name, user.last_name].filter(Boolean).join(" ")
+    : "Foydalanuvchi";
+}
+
+$("#menuSupport").addEventListener("click", () => {
+  // замени на ссылку на своего саппорт-бота/канал
+  showToast("Qo'llab-quvvatlash: @your_support_username");
+});
+
+// ==========================================================
+// TOAST
+// ==========================================================
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2800);
+}
+
+// ==========================================================
+// INIT
+// ==========================================================
+renderCatalog();
+renderWallet();
+renderProfile();
+goToScreen("catalog");
+
+</script>
+</body>
+</html>
